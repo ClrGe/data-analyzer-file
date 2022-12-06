@@ -11,27 +11,26 @@ import (
 )
 
 // defining the station struct
-type Stations struct {
-	Nom       []string `json:"nom_gare"`
-	UIC       []int    `json:"code_uic_complet"`
-	Total2015 []int    `json:"total_voyageurs_non_voyageurs_2015"`
-	Total2016 []int    `json:"total_voyageurs_non_voyageurs_2016"`
-	Total2017 []int    `json:"total_voyageurs_non_voyageurs_2017"`
-	Total2018 []int    `json:"total_voyageurs_non_voyageurs_2018"`
-	Total2019 []int    `json:"total_voyageurs_non_voyageurs_2019"`
-	Total2020 []int    `json:"total_voyageurs_non_voyageurs_2020"`
-	Total2021 []int    `json:"total_voyageurs_non_voyageurs_2021"`
+type Stations []struct {
+	Datasetid string `json:"datasetid"`
+	Fields    struct {
+		GareAliasLibelleNoncontraint string `json:"gare_alias_libelle_noncontraint"`
+		CommuneLibellemin            string `json:"commune_libellemin"`
+		UicCode                      string `json:"uic_code"`
+		Gare                         string `json:"gare"`
+		AdresseCp                    string `json:"adresse_cp"`
+		DepartementLibellemin        string `json:"departement_libellemin"`
+		GareRegionsncfLibelle        string `json:"gare_regionsncf_libelle"`
+	} `json:"fields"`
 }
-
-var station []Stations
 
 // retrieve stations ref-data from API
 func getRef(w http.ResponseWriter, r *http.Request) {
 
 	//zipcode := "76000"
-	url := "https://lab.jmg-conseil.eu/db/all"
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(station)
+	url := "http://127.0.0.1:8200/cell/test"
+
+	var station Stations
 
 	// Build the request
 	req, err := http.NewRequest("GET", url, nil)
@@ -41,6 +40,7 @@ func getRef(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := &http.Client{}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal("Do: ", err)
@@ -49,9 +49,11 @@ func getRef(w http.ResponseWriter, r *http.Request) {
 	defer resp.Body.Close()
 
 	// Use json.Decode for reading streams of JSON data
-	if err := json.NewDecoder(resp.Body); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&station); err != nil {
 		log.Println(err)
 	}
+
+	fmt.Fprintf(w, "data: %s\n", station)
 }
 
 // convert .csv file
@@ -95,13 +97,20 @@ func serveJson(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "data/output.json")
 }
 
+// serve converted data
+func test(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "data/referentiel-gares-voyageurs.json")
+}
+
 // main function
 func main() {
 	convertData()
 
 	router := mux.NewRouter()
 	router.HandleFunc("/cell", serveJson).Methods("GET")
+	router.HandleFunc("/cell/test", test).Methods("GET")
 	router.HandleFunc("/cell/ref", getRef).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8200", router))
+
 }
