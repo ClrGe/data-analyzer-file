@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/go-gota/gota v0.12.0
+	github.com/gorilla/mux v1.8.0
 	github.com/labstack/echo v3.3.10+incompatible
 )
 
@@ -16,7 +17,6 @@ require (
 	github.com/go-playground/validator/v10 v10.10.0 // indirect
 	github.com/gocarina/gocsv v0.0.0-20221105105431-c8ef78125b99 // indirect
 	github.com/goccy/go-json v0.9.7 // indirect
-	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
