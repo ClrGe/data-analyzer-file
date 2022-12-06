@@ -24,6 +24,9 @@ type Stations []struct {
 	} `json:"fields"`
 }
 
+// defining the station struct
+type StationData [][]string
+
 // retrieve stations ref-data from API
 func getRef(w http.ResponseWriter, r *http.Request) {
 
@@ -54,6 +57,38 @@ func getRef(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprintf(w, "data: %s\n", station)
+}
+
+// retrieve stations ref-data from API
+func getApi(w http.ResponseWriter, r *http.Request) {
+
+	//zipcode := "76000"
+	url := "https://lab.jmg-conseil.eu/db/all"
+
+	var stationf StationData
+
+	// Build the request
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Fatal("NewRequest: ", err)
+		return
+	}
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Do: ", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Use json.Decode for reading streams of JSON data
+	if err := json.NewDecoder(resp.Body).Decode(&stationf); err != nil {
+		log.Println(err)
+	}
+
+	fmt.Fprintf(w, "data: %s\n", stationf)
 }
 
 // convert .csv file
@@ -109,6 +144,7 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/cell", serveJson).Methods("GET")
 	router.HandleFunc("/cell/test", test).Methods("GET")
+	router.HandleFunc("/cell/api", getApi).Methods("GET")
 	router.HandleFunc("/cell/ref", getRef).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8200", router))
