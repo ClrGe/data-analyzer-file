@@ -174,9 +174,13 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 		if station[i].CodeUic == id {
 			result = true
 			if result {
-				//fmt.Fprint(w, station[i])
-
-				fmt.Fprintf(w, "Total 2015: %d\n\brTotal 2016: %d\n\br Total 2017: %d\n\br Total 2018: %d\n\br Total 2019: %d\n\br Total 2020: %d\n\br Total 2021: %d\n\br", station[i].Total2015, station[i].Total2016, station[i].Total2017, station[i].Total2018, station[i].Total2019, station[i].Total2020, station[i].Total2021)
+				fmt.Fprintf(w, "Total 2015: %d\n", station[i].Total2015)
+				fmt.Fprintf(w, "Total 2016: %d\n", station[i].Total2016)
+				fmt.Fprintf(w, "Total 2017: %d\n", station[i].Total2017)
+				fmt.Fprintf(w, "Total 2018: %d\n", station[i].Total2018)
+				fmt.Fprintf(w, "Total 2019: %d\n", station[i].Total2019)
+				fmt.Fprintf(w, "Total 2020: %d\n", station[i].Total2020)
+				fmt.Fprintf(w, "Total 2021: %d\n", station[i].Total2021)
 			}
 			break
 		}
