@@ -174,15 +174,15 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 		if station[i].CodeUic == id {
 			result = true
 			if result {
-				fmt.Fprintf(w, "Total 2015:  %d", station[i].Total2015)
-				fmt.Fprintf(w, "Total 2016:  %d", station[i].Total2016)
-				fmt.Fprintf(w, "Total 2017:  %d", station[i].Total2017)
-				fmt.Fprintf(w, "Total 2018:  %d", station[i].Total2018)
-				fmt.Fprintf(w, "Total 2019:  %d", station[i].Total2019)
-				fmt.Fprintf(w, "Total 2020:  %d", station[i].Total2020)
-				fmt.Fprintf(w, "Total 2021:  %d", station[i].Total2021)
+				/*	fmt.Fprintf(w, "Total 2015:  %d", station[i].Total2015)
+					fmt.Fprintf(w, "Total 2016:  %d", station[i].Total2016)
+					fmt.Fprintf(w, "Total 2017:  %d", station[i].Total2017)
+					fmt.Fprintf(w, "Total 2018:  %d", station[i].Total2018)
+					fmt.Fprintf(w, "Total 2019:  %d", station[i].Total2019)
+					fmt.Fprintf(w, "Total 2020:  %d", station[i].Total2020)
+					fmt.Fprintf(w, "Total 2021:  %d", station[i].Total2021)*/
 
-				//fmt.Fprintf(w, "Code UIC: %d\nNom: %s\nTotal 2015: %d\nTotal 2016: %d\nTotal 2017: %d\nTotal 2018: %d\nTotal 2019: %d\nTotal 2020: %d\nTotal 2021: %d\n", station[i].CodeUic, station[i].NomGare, station[i].Total2015, station[i].Total2016, station[i].Total2017, station[i].Total2018, station[i].Total2019, station[i].Total2020, station[i].Total2021)
+				fmt.Fprintf(w, "Code UIC: %d\nNom: %s\nTotal 2015: %d\nTotal 2016: %d\nTotal 2017: %d\nTotal 2018: %d\nTotal 2019: %d\nTotal 2020: %d\nTotal 2021: %d\n", station[i].CodeUic, station[i].NomGare, station[i].Total2015, station[i].Total2016, station[i].Total2017, station[i].Total2018, station[i].Total2019, station[i].Total2020, station[i].Total2021)
 			}
 			break
 		}
