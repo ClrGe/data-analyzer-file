@@ -176,7 +176,7 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 			if result {
 				//fmt.Fprint(w, station[i])
 
-				fmt.Fprintf(w, "Total 2015: %d\nTotal 2016: %d\nTotal 2017: %d\nTotal 2018: %d\nTotal 2019: %d\nTotal 2020: %d\nTotal 2021: %d\n", station[i].Total2015, station[i].Total2016, station[i].Total2017, station[i].Total2018, station[i].Total2019, station[i].Total2020, station[i].Total2021)
+				fmt.Fprintf(w, "Total 2015: %d\n\brTotal 2016: %d\n\br Total 2017: %d\n\br Total 2018: %d\n\br Total 2019: %d\n\br Total 2020: %d\n\br Total 2021: %d\n\br", station[i].Total2015, station[i].Total2016, station[i].Total2017, station[i].Total2018, station[i].Total2019, station[i].Total2020, station[i].Total2021)
 			}
 			break
 		}
