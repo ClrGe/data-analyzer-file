@@ -142,7 +142,7 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 
 	// retrieve request parameters
 	uiccode := r.URL.Query()["uic"]
-	zipcode := r.URL.Query()["zipcode"]
+
 	var id, err = strconv.Atoi(uiccode[0])
 	// url from which the yearly freq data will be fetched
 	url := "https://lab.jmg-conseil.eu/cell"
