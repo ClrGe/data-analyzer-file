@@ -145,7 +145,7 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 	zipcode := r.URL.Query()["zipcode"]
 	var id, err = strconv.Atoi(uiccode[0])
 	// url from which the yearly freq data will be fetched
-	url := "http://127.0.0.1:8200/cell"
+	url := "https://lab.jmg-conseil.eu/cell"
 
 	// Build the request
 	req, err := http.NewRequest("GET", url, nil)
