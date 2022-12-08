@@ -170,13 +170,13 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	if uiccode != nil {
-		fmt.Fprintf(w, "Parametre de recherche : Code UIC %s\n\n", uiccode)
-	}
+	/*	if uiccode != nil {
+			fmt.Fprintf(w, "Parametre de recherche : Code UIC %s\n\n", uiccode)
+		}
 
-	if zipcode != nil {
-		fmt.Fprintf(w, "Parametre de recherche : Code postal %s\n\n", zipcode)
-	}
+		if zipcode != nil {
+			fmt.Fprintf(w, "Parametre de recherche : Code postal %s\n\n", zipcode)
+		}*/
 
 	var result bool = false
 
@@ -184,6 +184,8 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 		if station[i].CodeUic == id {
 			result = true
 			if result {
+				//fmt.Fprint(w, station[i])
+
 				fmt.Fprintf(w, "Code UIC: %d\nNom: %s\nTotal 2015: %d\nTotal 2016: %d\nTotal 2017: %d\nTotal 2018: %d\nTotal 2019: %d\nTotal 2020: %d\nTotal 2021: %d\n", station[i].CodeUic, station[i].NomGare, station[i].Total2015, station[i].Total2016, station[i].Total2017, station[i].Total2018, station[i].Total2019, station[i].Total2020, station[i].Total2021)
 			}
 			break
