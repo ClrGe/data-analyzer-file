@@ -63,23 +63,20 @@ func serveJson(w http.ResponseWriter, r *http.Request) {
 func getApi(w http.ResponseWriter, r *http.Request) {
 
 	// retrieve request parameters
-	uiccode := r.URL.Query()["uic"]
+	//uiccode := r.URL.Query()["uic"]
 	zipcode := r.URL.Query()["zipcode"]
 
 	//  url from which the referential data will be fetched
 	url := "https://lab.jmg-conseil.eu/db/search?zipcode=" + zipcode[0]
 
-	// url from which the yearly freq data will be fetched
-	//urlFreq := "https://lab.jmg-conseil.eu/cell"
-
-	file, err := os.Open("data/frequentation-gares.csv")
+	/*file, err := os.Open("data/frequentation-gares.csv")
 	defer file.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
 	df := dataframe.ReadCSV(file)
 	infoGare := df.Select([]string{"Code UIC"})
-	fmt.Fprintf(w, "Test avec CSV %s\n", infoGare)
+	fmt.Fprintf(w, "Test avec CSV %s\n", infoGare)*/
 
 	var stationf StationData
 
@@ -104,27 +101,17 @@ func getApi(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	if uiccode != nil {
-		fmt.Fprintf(w, "Parametre de recherche : Code UIC %s\n", uiccode)
-	}
-
 	if zipcode != nil {
 		fmt.Fprintf(w, "Parametre de recherche : Code postal %s\n", zipcode)
 	}
 
-	/* check for a matching zipcode
-	var result bool = false
+	// check for a matching zipcode
 	for i := 0; i < len(stationf); i++ {
-		if stationf[i][1] == zipcode {
-			result = true
-			fmt.Fprintf(w, "Code postal: %s\n", stationf[i])
-			break
+		if stationf[i][2] == zipcode[0] {
+			fmt.Fprint(w, stationf[i])
 		}
-	}*/
-	fmt.Fprintf(w, "Commune: %s\n", stationf[0][0])
-	fmt.Fprintf(w, "Département: %s\n", stationf[0][2])
-	fmt.Fprintf(w, "Region: %s\n", stationf[0][1])
-	fmt.Fprintf(w, "Code UIC: %s\n", stationf[0][4])
+	}
+
 }
 
 // retrieve stations ref-data from API
@@ -132,9 +119,10 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 
 	// retrieve request parameters
 	uiccode := r.URL.Query()["uic"]
+	zipcode := r.URL.Query()["zipcode"]
 
 	var id, err = strconv.Atoi(uiccode[0])
-	// url from which the yearly freq data will be fetched
+	// url from which the data will be fetched
 	url := "https://lab.jmg-conseil.eu/cell"
 
 	// Build the request
@@ -160,32 +148,20 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	/*	if uiccode != nil {
-			fmt.Fprintf(w, "Parametre de recherche : Code UIC %s\n\n", uiccode)
-		}
+	if uiccode != nil {
+		fmt.Printf("Parametre de recherche : Code UIC %s\n\n", uiccode)
+	}
 
-		if zipcode != nil {
-			fmt.Fprintf(w, "Parametre de recherche : Code postal %s\n\n", zipcode)
-		}*/
-
-	var result bool = false
+	if zipcode != nil {
+		fmt.Printf("Parametre de recherche : Code postal %s\n\n", zipcode)
+	}
 
 	for i := 0; i < len(station); i++ {
 		if station[i].CodeUic == id {
-			result = true
-			if result {
-				/*	fmt.Fprintf(w, "Total 2015:  %d", station[i].Total2015)
-					fmt.Fprintf(w, "Total 2016:  %d", station[i].Total2016)
-					fmt.Fprintf(w, "Total 2017:  %d", station[i].Total2017)
-					fmt.Fprintf(w, "Total 2018:  %d", station[i].Total2018)
-					fmt.Fprintf(w, "Total 2019:  %d", station[i].Total2019)
-					fmt.Fprintf(w, "Total 2020:  %d", station[i].Total2020)
-					fmt.Fprintf(w, "Total 2021:  %d", station[i].Total2021)*/
-				fmt.Fprint(w, station[i].Total2015, station[i].Total2016, station[i].Total2017, station[i].Total2018, station[i].Total2019, station[i].Total2020, station[i].Total2021)
 
-				//fmt.Fprintf(w, "Total 2015: %d Total 2016: %d Total 2017: %d Total 2018: %d Total 2019: %d Total 2020: %d  Total 2021: %d  ", station[i].Total2015, station[i].Total2016, station[i].Total2017, station[i].Total2018, station[i].Total2019, station[i].Total2020, station[i].Total2021)
-			}
-			break
+			fmt.Fprint(w, station[i].Total2015, station[i].Total2016, station[i].Total2017, station[i].Total2018, station[i].Total2019, station[i].Total2020, station[i].Total2021)
+
+			//fmt.Fprintf(w, "Total 2015: %d Total 2016: %d Total 2017: %d Total 2018: %d Total 2019: %d Total 2020: %d  Total 2021: %d  ", station[i].Total2015, station[i].Total2016, station[i].Total2017, station[i].Total2018, station[i].Total2019, station[i].Total2020, station[i].Total2021
 		}
 	}
 
