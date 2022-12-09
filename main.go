@@ -9,11 +9,10 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 )
 
 type Station []struct {
-	CodeUic   int    `json:"code_uic_complet"`
+	CodeUic   string `json:"code_uic_complet"`
 	NomGare   string `json:"nom_gare"`
 	Total2015 int    `json:"total_voyageurs_non_voyageurs_2015"`
 	Total2016 int    `json:"total_voyageurs_non_voyageurs_2016"`
@@ -60,23 +59,17 @@ func serveJson(w http.ResponseWriter, r *http.Request) {
 }
 
 // retrieve stations ref-data from API
-func getApi(w http.ResponseWriter, r *http.Request) {
+func refData(w http.ResponseWriter, r *http.Request) {
 
 	// retrieve request parameters
-	//uiccode := r.URL.Query()["uic"]
-	zipcode := r.URL.Query()["zipcode"]
+	uic := r.URL.Query()["uic"]
+	zip := r.URL.Query()["zip"]
+
+	//var id, err = strconv.Atoi(uic[0])
 
 	//  url from which the referential data will be fetched
-	url := "https://lab.jmg-conseil.eu/db/search?zipcode=" + zipcode[0]
-
-	/*file, err := os.Open("data/frequentation-gares.csv")
-	defer file.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-	df := dataframe.ReadCSV(file)
-	infoGare := df.Select([]string{"Code UIC"})
-	fmt.Fprintf(w, "Test avec CSV %s\n", infoGare)*/
+	base := "https://lab.jmg-conseil.eu/db/search?uiccode=%s"
+	url := fmt.Sprintf("%s%s", base, zip)
 
 	var stationf StationData
 
@@ -95,19 +88,19 @@ func getApi(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer resp.Body.Close()
-
-	// Use json.Decode for reading streams of JSON data
 	if err := json.NewDecoder(resp.Body).Decode(&stationf); err != nil {
 		log.Println(err)
 	}
 
-	if zipcode != nil {
-		fmt.Fprintf(w, "Parametre de recherche : Code postal %s\n", zipcode)
+	if uic != nil {
+		fmt.Fprintf(w, "Parametre de recherche :  %s\n", uic[0])
+		fmt.Fprint(w, stationf)
+
 	}
 
 	// check for a matching zipcode
 	for i := 0; i < len(stationf); i++ {
-		if stationf[i][2] == zipcode[0] {
+		if stationf[i][2] == zip[0] {
 			fmt.Fprint(w, stationf[i])
 		}
 	}
@@ -115,13 +108,12 @@ func getApi(w http.ResponseWriter, r *http.Request) {
 }
 
 // retrieve stations ref-data from API
-func sendData(w http.ResponseWriter, r *http.Request) {
+func crowdData(w http.ResponseWriter, r *http.Request) {
 
 	// retrieve request parameters
 	uiccode := r.URL.Query()["uic"]
 	zipcode := r.URL.Query()["zipcode"]
 
-	var id, err = strconv.Atoi(uiccode[0])
 	// url from which the data will be fetched
 	url := "https://lab.jmg-conseil.eu/cell"
 
@@ -131,9 +123,7 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("NewRequest: ", err)
 		return
 	}
-
 	client := &http.Client{}
-
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal("Do: ", err)
@@ -144,9 +134,9 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 	var station Station
 
 	// Use json.Decode for reading streams of JSON data
-	if err := json.NewDecoder(resp.Body).Decode(&station); err != nil {
+	/*if err := json.NewDecoder(resp.Body).Decode(&station); err != nil {
 		log.Println(err)
-	}
+	}*/
 
 	if uiccode != nil {
 		fmt.Printf("Parametre de recherche : Code UIC %s\n\n", uiccode)
@@ -155,27 +145,30 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 	if zipcode != nil {
 		fmt.Printf("Parametre de recherche : Code postal %s\n\n", zipcode)
 	}
-
-	for i := 0; i < len(station); i++ {
-		if station[i].CodeUic == id {
-
-			fmt.Fprint(w, station[i].Total2015, station[i].Total2016, station[i].Total2017, station[i].Total2018, station[i].Total2019, station[i].Total2020, station[i].Total2021)
-
-			//fmt.Fprintf(w, "Total 2015: %d Total 2016: %d Total 2017: %d Total 2018: %d Total 2019: %d Total 2020: %d  Total 2021: %d  ", station[i].Total2015, station[i].Total2016, station[i].Total2017, station[i].Total2018, station[i].Total2019, station[i].Total2020, station[i].Total2021
-		}
+	if station != nil {
+		fmt.Printf("Parametre de recherche : Code postal %s\n\n", zipcode)
 	}
 
+	/*	for i := 0; i < len(station); i++ {
+		if station[i].CodeUic == uiccode[0] {
+			//fmt.Fprint(w, station[i].Total2015, station[i].Total2016, station[i].Total2017, station[i].Total2018, station[i].Total2019, station[i].Total2020, station[i].Total2021)
+			fmt.Println(refData)
+			fmt.Fprint(w, station[i].Total2015, station[i].Total2016, station[i].Total2017, station[i].Total2018, station[i].Total2019, station[i].Total2020, station[i].Total2021)
+			return
+		}
+	}*/
+
+	refData(w, r)
 }
 
 // main function
 func main() {
 
 	router := mux.NewRouter()
-	router.HandleFunc("/cell/ok", convertData).Methods("GET")
-	router.HandleFunc("/cell/station", sendData).Methods("GET")
+	router.HandleFunc("/cell/station", crowdData).Methods("GET")
 	router.HandleFunc("/cell/csv", csvReader).Methods("GET")
 	router.HandleFunc("/cell", serveJson).Methods("GET")
-	router.HandleFunc("/cell/api", getApi).Methods("GET")
+	router.HandleFunc("/cell/api", refData).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8200", router))
 
