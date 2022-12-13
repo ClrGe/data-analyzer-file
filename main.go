@@ -1,3 +1,5 @@
+// TODO: problem while sending/retrieving multiple stations
+
 package main
 
 import (
