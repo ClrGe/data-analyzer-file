@@ -60,24 +60,19 @@ func serveJson(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "data/output.json")
 }
 
+// API documentation
+func serveRawDoc(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "swagger.json")
+}
+
 // retrieve stations ref-data from API
 func getApi(w http.ResponseWriter, r *http.Request) {
 
 	// retrieve request parameters
-	//uiccode := r.URL.Query()["uic"]
 	zipcode := r.URL.Query()["zipcode"]
 
 	//  url from which the referential data will be fetched
 	url := "https://lab.jmg-conseil.eu/db/search?zipcode=" + zipcode[0]
-
-	/*file, err := os.Open("data/frequentation-gares.csv")
-	defer file.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-	df := dataframe.ReadCSV(file)
-	infoGare := df.Select([]string{"Code UIC"})
-	fmt.Fprintf(w, "Test avec CSV %s\n", infoGare)*/
 
 	var stationf StationData
 
@@ -122,7 +117,6 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 	uiccode := r.URL.Query()["uic"]
 	zipcode := r.URL.Query()["zipcode"]
 
-	//var id, err = strconv.Atoi(uiccode[0])
 	// url from which the data will be fetched
 	url := "https://lab.jmg-conseil.eu/cell"
 
@@ -176,11 +170,12 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 func main() {
 
 	router := mux.NewRouter()
+
 	router.HandleFunc("/cell/ok", convertData).Methods("GET")
 	router.HandleFunc("/cell/station", sendData).Methods("GET")
 	router.HandleFunc("/cell/csv", csvReader).Methods("GET")
 	router.HandleFunc("/cell", serveJson).Methods("GET")
-	router.HandleFunc("/cell/api", getApi).Methods("GET")
+	router.HandleFunc("/cell/raw", serveRawDoc).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8200", router))
 
