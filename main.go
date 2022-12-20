@@ -28,10 +28,11 @@ type StationData [][]string
 
 func csvReader(w http.ResponseWriter, r *http.Request) {
 	// 1. Open the file
-	recordFile, err := os.Open("data/frequentation-gares.csv")
+	recordFile, err := os.Open("data/gares.csv")
 	if err != nil {
 		fmt.Println("An error encountered ::", err)
-	} // 2. Initialize the reader
+	} // 2. Initialize the reader*
+
 	reader := csv.NewReader(recordFile)
 	records, _ := reader.ReadAll()
 	fmt.Fprint(w, records)
