@@ -165,7 +165,7 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 		}
 		for s := 0; s < len(station); s++ {
 			if station[s].CodeUic == id {
-				fmt.Fprint(w, []int{station[i].Total2015, station[i].Total2016, station[i].Total2017, station[i].Total2018, station[i].Total2019, station[i].Total2020, station[i].Total2021})
+				fmt.Fprint(w, []int{station[i].Total2015, station[i].Total2016, station[i].Total2017, station[i].Total2018, station[i].Total2019, station[i].Total2020, station[i].Total2021}, " ")
 			}
 		}
 	}
