@@ -9,7 +9,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/go-gota/gota/dataframe"
 	"github.com/gorilla/mux"
 )
 
@@ -39,22 +38,6 @@ func csvReader(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, records)
 }
 
-// convert .csv file
-func convertData(w http.ResponseWriter, r *http.Request) {
-	file, err := os.Open("data/gares.csv")
-	defer file.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-	df := dataframe.ReadCSV(file)
-	df.SetNames("dataset", "record", "2018", "2021", "2015", "seg_drg", "2020", "2016", "2018", "voy2017", "2017", "2019", "code_uic", "cp", "2020", "voy2019", "voy2021", "voy2016", "voy2015", "nom_gare", "date")
-
-	data := df.Select([]int{2, 3, 4, 6, 7, 8, 10, 11, 14})
-
-	fmt.Fprint(w, data)
-
-}
-
 // serve converted data
 func serveJson(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "data/output.json")
@@ -66,51 +49,6 @@ func serveRawDoc(w http.ResponseWriter, r *http.Request) {
 }
 
 // retrieve stations ref-data from API
-func getApi(w http.ResponseWriter, r *http.Request) {
-
-	// retrieve request parameters
-	zipcode := r.URL.Query()["zipcode"]
-
-	//  url from which the referential data will be fetched
-	url := "https://lab.jmg-conseil.eu/db/search?zipcode=" + zipcode[0]
-
-	var stationf StationData
-
-	// Build the request
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		log.Fatal("NewRequest: ", err)
-		return
-	}
-
-	client := &http.Client{}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatal("Do: ", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	// Use json.Decode for reading streams of JSON data
-	if err := json.NewDecoder(resp.Body).Decode(&stationf); err != nil {
-		log.Println(err)
-	}
-
-	if zipcode != nil {
-		fmt.Fprintf(w, "Parametre de recherche : Code postal %s\n", zipcode)
-	}
-
-	// check for a matching zipcode
-	for i := 0; i < len(stationf); i++ {
-		if stationf[i][2] == zipcode[0] {
-			fmt.Fprint(w, stationf[i])
-		}
-	}
-
-}
-
-// retrieve stations ref-data from API
 func sendData(w http.ResponseWriter, r *http.Request) {
 
 	// retrieve request parameters
@@ -118,7 +56,7 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 	zipcode := r.URL.Query()["zipcode"]
 
 	// url from which the data will be fetched
-	url := "https://lab.jmg-conseil.eu/cell"
+	url := "http://localhost:8200/cell"
 
 	// Build the request
 	req, err := http.NewRequest("GET", url, nil)
@@ -171,7 +109,6 @@ func main() {
 
 	router := mux.NewRouter()
 
-	router.HandleFunc("/cell/ok", convertData).Methods("GET")
 	router.HandleFunc("/cell/station", sendData).Methods("GET")
 	router.HandleFunc("/cell/csv", csvReader).Methods("GET")
 	router.HandleFunc("/cell", serveJson).Methods("GET")
