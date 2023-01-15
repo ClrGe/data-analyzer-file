@@ -1,3 +1,6 @@
+// This script creates a web server using the net/http package and the gorilla/mux router package,
+// and exposes several routes to handle different types of requests (csv file, serving json and API documentation, retrieving data from an API..)
+
 package main
 
 import (
@@ -10,6 +13,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/spf13/viper"
 )
 
 type Station []struct {
@@ -24,49 +28,67 @@ type Station []struct {
 	Total2021 int    `json:"total_voyageurs_non_voyageurs_2021"`
 }
 
-// defining the station struct
-type StationData [][]string
-
-func csvReader(w http.ResponseWriter, r *http.Request) {
-	// 1. Open the file
-	recordFile, err := os.Open("data/frequentation-gares.csv")
-	if err != nil {
-		fmt.Println("An error encountered ::", err)
-	} // 2. Initialize the reader
-	reader := csv.NewReader(recordFile)
-	records, _ := reader.ReadAll()
-	fmt.Fprint(w, records)
+// Config struct holds the environment variables
+type Config struct {
+	PORT string `mapstructure:"PORT"`
+	HOST string `mapstructure:"HOST"`
 }
 
-// serve converted data
+// LoadConfig loads the env file data to a struct
+func LoadConfig(path string) (config Config, err error) {
+	viper.AddConfigPath(path)
+	viper.SetConfigName("app")
+	viper.SetConfigType("env")
+	viper.AutomaticEnv()
+
+	err = viper.ReadInConfig()
+	if err != nil {
+		return
+	}
+	err = viper.Unmarshal(&config)
+	return
+}
+
+// csvReader function reads a CSV file and returns the records to the client
+func csvReader(w http.ResponseWriter, r *http.Request) {
+	recordFile, err := os.Open("data/frequentation-gares.csv")
+	if err != nil {
+		fmt.Println("Erreur ::", err)
+		reader := csv.NewReader(recordFile)
+		records, _ := reader.ReadAll()
+		fmt.Fprint(w, records)
+	}
+}
+
+// serveJson function serves a JSON file to the client
 func serveJson(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "data/output.json")
 }
 
-// API documentation
+// serveRawDoc function serves the API documentation to the client
 func serveRawDoc(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "swagger.json")
 }
 
-// retrieve stations ref-data from API
+// sendData function retrieves data from an API based on request parameters 'uic' and 'zipcode' and returns the data in json format
 func sendData(w http.ResponseWriter, r *http.Request) {
+
+	config, err := LoadConfig(".")
 
 	// retrieve request parameters
 	uiccode := r.URL.Query()["uic"]
 	zipcode := r.URL.Query()["zipcode"]
 
 	// url from which the data will be fetched
-	url := "http://localhost:8200/cell"
+	url := config.HOST + "/cell"
 
 	// Build the request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Fatal("NewRequest: ", err)
+		log.Fatal("Requete : ", err)
 		return
 	}
-
 	client := &http.Client{}
-
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal("Do: ", err)
@@ -80,19 +102,18 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(resp.Body).Decode(&station); err != nil {
 		log.Println(err)
 	}
-
 	if uiccode != nil {
 		fmt.Printf("Parametre de recherche : Code UIC %s\n\n", uiccode)
 	}
-
 	if zipcode != nil {
 		fmt.Printf("Parametre de recherche : Code postal %s\n\n", zipcode)
 	}
 
+	// looping over the received data to find the station with the matching uic code
 	for i := 0; i < len(uiccode); i++ {
 		var id, err = strconv.Atoi(uiccode[i])
 		if err != nil {
-			log.Fatal("NewRequest: ", err)
+			log.Fatal("Requete: ", err)
 			return
 		}
 		for s := 0; s < len(station); s++ {
@@ -101,19 +122,21 @@ func sendData(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-
 }
 
-// main function
 func main() {
+	// load app.env file data to struct
+	config, err := LoadConfig(".")
 
 	router := mux.NewRouter()
+
+	log.Fatal(http.ListenAndServe(config.PORT, router))
+	if err != nil {
+		log.Fatalf("failed connection: %v", err)
+	}
 
 	router.HandleFunc("/cell/station", sendData).Methods("GET")
 	router.HandleFunc("/cell/csv", csvReader).Methods("GET")
 	router.HandleFunc("/cell", serveJson).Methods("GET")
 	router.HandleFunc("/cell/raw", serveRawDoc).Methods("GET")
-
-	log.Fatal(http.ListenAndServe(":8200", router))
-
 }
