@@ -4,12 +4,10 @@
 package main
 
 import (
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -26,6 +24,17 @@ type Station []struct {
 	Total2019 int    `json:"total_voyageurs_non_voyageurs_2019"`
 	Total2020 int    `json:"total_voyageurs_non_voyageurs_2020"`
 	Total2021 int    `json:"total_voyageurs_non_voyageurs_2021"`
+}
+type StationE []struct {
+	CodeUic   int    `json:"code_uic"`
+	NomGare   string `json:"cp"`
+	Total2015 int    `json:"a2015"`
+	Total2016 int    `json:"a2016"`
+	Total2017 int    `json:"a2017"`
+	Total2018 int    `json:"a2018"`
+	Total2019 int    `json:"2019"`
+	Total2020 int    `json:"a2020"`
+	Total2021 int    `json:"a2021"`
 }
 
 // Config struct holds the environment variables
@@ -50,15 +59,33 @@ func LoadConfig(path string) (config Config, err error) {
 }
 
 // csvReader function reads a CSV file and returns the records to the client
-func csvReader(w http.ResponseWriter, r *http.Request) {
-	recordFile, err := os.Open("data/frequentation-gares.csv")
-	if err != nil {
-		fmt.Println("Erreur ::", err)
-		reader := csv.NewReader(recordFile)
-		records, _ := reader.ReadAll()
-		fmt.Fprint(w, records)
-	}
-}
+// func csvReader(w http.ResponseWriter, r *http.Request) {
+// 	// retrieve request parameters
+// 	uiccode := r.URL.Query()["uic"]
+// 	zipcode := r.URL.Query()["zipcode"]
+
+// 	in, err := os.Open("data/gares.csv")
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	defer in.Close()
+
+// 	stations := []Station{}
+
+// 	if uiccode != nil {
+// 		fmt.Printf("Parametre de recherche : Code UIC %s\n\n", uiccode)
+// 	}
+// 	if zipcode != nil {
+// 		fmt.Printf("Parametre de recherche : Code postal %s\n\n", zipcode)
+// 	}
+
+// 	// Unmarshal the CSV data into the stations variable
+// 	gocsv.UnmarshalFile(in, stations)
+
+// 	for _, t := range stations {
+// 		json.NewEncoder(w).Encode(t)
+// 	}
+// }
 
 // serveJson function serves a JSON file to the client
 func serveJson(w http.ResponseWriter, r *http.Request) {
@@ -73,14 +100,12 @@ func serveRawDoc(w http.ResponseWriter, r *http.Request) {
 // sendData function retrieves data from an API based on request parameters 'uic' and 'zipcode' and returns the data in json format
 func sendData(w http.ResponseWriter, r *http.Request) {
 
-	config, err := LoadConfig(".")
-
 	// retrieve request parameters
 	uiccode := r.URL.Query()["uic"]
 	zipcode := r.URL.Query()["zipcode"]
 
 	// url from which the data will be fetched
-	url := config.HOST + "/cell"
+	url := "https://lab.jmg-conseil.eu/cell"
 
 	// Build the request
 	req, err := http.NewRequest("GET", url, nil)
@@ -130,13 +155,13 @@ func main() {
 
 	router := mux.NewRouter()
 
+	router.HandleFunc("/cell/station", sendData).Methods("GET")
+	//router.HandleFunc("/cell/csv", csvReader).Methods("GET")
+	router.HandleFunc("/cell", serveJson).Methods("GET")
+	router.HandleFunc("/cell/raw", serveRawDoc).Methods("GET")
 	log.Fatal(http.ListenAndServe(config.PORT, router))
+
 	if err != nil {
 		log.Fatalf("failed connection: %v", err)
 	}
-
-	router.HandleFunc("/cell/station", sendData).Methods("GET")
-	router.HandleFunc("/cell/csv", csvReader).Methods("GET")
-	router.HandleFunc("/cell", serveJson).Methods("GET")
-	router.HandleFunc("/cell/raw", serveRawDoc).Methods("GET")
 }
