@@ -1,3 +1,4 @@
+
 // This script creates a web server using the net/http package and the gorilla/mux router package,
 // and exposes several routes to handle different types of requests (csv file, serving json and API documentation, retrieving data from an API..)
 
