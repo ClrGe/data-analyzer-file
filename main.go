@@ -59,35 +59,6 @@ func LoadConfig(path string) (config Config, err error) {
 	return
 }
 
-// csvReader function reads a CSV file and returns the records to the client
-// func csvReader(w http.ResponseWriter, r *http.Request) {
-// 	// retrieve request parameters
-// 	uiccode := r.URL.Query()["uic"]
-// 	zipcode := r.URL.Query()["zipcode"]
-
-// 	in, err := os.Open("data/gares.csv")
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	defer in.Close()
-
-// 	stations := []Station{}
-
-// 	if uiccode != nil {
-// 		fmt.Printf("Parametre de recherche : Code UIC %s\n\n", uiccode)
-// 	}
-// 	if zipcode != nil {
-// 		fmt.Printf("Parametre de recherche : Code postal %s\n\n", zipcode)
-// 	}
-
-// 	// Unmarshal the CSV data into the stations variable
-// 	gocsv.UnmarshalFile(in, stations)
-
-// 	for _, t := range stations {
-// 		json.NewEncoder(w).Encode(t)
-// 	}
-// }
-
 // serveJson function serves a JSON file to the client
 func serveJson(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "data/output.json")
